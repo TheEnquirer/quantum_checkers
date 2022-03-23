@@ -26,72 +26,109 @@ function App() {
 
 
     const poggers = () => {
-    // [
-    //     [[p1, p2], ..],
-    //     [[...]]
-    // ]
-    let oldGrid = new Array(GRID_SIZE).fill(Array(GRID_SIZE).fill([0,0])) // initialize our grid
+	console.log("running poggers")
+	// [
+	//     [[p1, p2], ..],
+	//     [[...]]
+	// ]
+	//let oldGrid = new Array(GRID_SIZE).fill(new Array(GRID_SIZE).fill([0,0])) // initialize our grid
+	let oldGrid = new Array(GRID_SIZE)
+	for (let i = 0; i < GRID_SIZE; i++) {
+	    oldGrid[i] = [[0,0],[0,0],[0,0],[0,0],[0,0]]
+		//new Array(GRID_SIZE).fill([0,0])
+	}
+	console.log("init grid", Array.from(oldGrid))
 
-    oldGrid[2][2] = [1, 1] // set our starting conditions
+	oldGrid[2][2] = [1, 1] // set our starting conditions
 
-    let elapsed = 0
-    for (let time = 1; time < SIM_LEN; time++) {
-        // do our non-collapse calc
-        // if k has passed, collapse, reset k
-        let newGrid = new Array(GRID_SIZE).fill(Array(GRID_SIZE).fill([0,0])) // initialize our new grid
+	let elapsed = 0
+	for (let time = 1; time < SIM_LEN; time++) {
+	    // do our non-collapse calc
+	    // if k has passed, collapse, reset k
+	    //let newGrid = new Array(GRID_SIZE).fill(new Array(GRID_SIZE).fill([0,0])) // initialize our new grid
+	    let newGrid = new Array(GRID_SIZE)
+	    for (let i = 0; i < GRID_SIZE; i++) {
+		newGrid[i] = [[0,0],[0,0],[0,0],[0,0],[0,0]]
+		    //new Array(GRID_SIZE).fill([0,0])
+	    }
 
-        for (let i = 0; i < GRID_SIZE; i++) {
-        for (let j = 0; j < GRID_SIZE; j++) {
-            for (let q = 0; q < 2; q++) {
-            newGrid[i][j][q] = psi(i, j, oldGrid, qbits[q])
-            }
-        }
-        }
-        oldGrid = newGrid
+	    //newGrid[0][1] = 12
+	    //console.log(newGrid, "e")
 
-        elapsed++
-        if (elapsed == K) {
-	    // collapse
-	    elapsed = 0
-
-	    // find all the probabilities
-	    // choooose where the qbits go
-	    // update the qbits
-	    let probs = [[], []]
 	    for (let i = 0; i < GRID_SIZE; i++) {
 		for (let j = 0; j < GRID_SIZE; j++) {
-		for (let q = 0; q < 2; q++) {
-		    probs[q].push(math.multiply(oldGrid[i][j][q], math.conj(oldGrid[i][j][q])))
+		    for (let q = 0; q < 2; q++) {
+			let updateVal = psi(i, j, oldGrid, qbits[q])
+			//console.log(updateVal, q)
+			newGrid[i][j][q] = updateVal
+			//newGrid[i][j][q] = Math.random() + i
+			//console.log(newGrid, updateVal.re)
+		    }
 		}
+	    }
+
+	    //console.log(newGrid, "new grid")
+	    //continue
+	    oldGrid = newGrid
+
+	    elapsed++
+	    if (elapsed == K) {
+		// collapse
+		elapsed = 0
+
+		// find all the probabilities
+		// choooose where the qbits go
+		// update the qbits
+		let probs = [[], []]
+		for (let i = 0; i < GRID_SIZE; i++) {
+		    for (let j = 0; j < GRID_SIZE; j++) {
+		    for (let q = 0; q < 2; q++) {
+			probs[q].push(math.multiply(oldGrid[i][j][q], math.conj(oldGrid[i][j][q])))
+		    }
+		    }
 		}
-	    }
 
-	    for (const [i, v] of probs.entries()) {
-		let sum = math.sum(v)
-		probs[i] = v.map((e) => math.divide(e, sum))
-	    }
-	    let tempGrid = new Array(GRID_SIZE).fill(Array(GRID_SIZE).fill([0,0])) // initialize our grid
-	    oldGrid = tempGrid
-	    //console.log(oldGrid, tempGrid, "set it to zeroez")
-	    console.log(new Array(GRID_SIZE).fill(Array(GRID_SIZE).fill([0,0])), "whaa", oldGrid)
-	    for (const [i, v] of probs.entries()) {
-		//console.log(probs[i])
-		let point = math.pickRandom([...Array(Math.pow(GRID_SIZE, 2)).keys()], probs[i].map((e) => e.re))
-		console.log(point, "point")
+		for (const [i, v] of probs.entries()) {
+		    let sum = math.sum(v)
+		    probs[i] = v.map((e) => math.divide(e, sum))
+		}
+		//let tempGrid = new Array(GRID_SIZE).fill(Array(GRID_SIZE).fill([0,0])) // initialize our grid
 
-		let x = Math.floor(point / GRID_SIZE)
-		let y = point % GRID_SIZE
 
-		qbits[i].x = x
-		qbits[i].y = y
-		oldGrid[x][y][i] = "whee"
-		console.log("what",x,y, "tf" )
+		let tempGrid = new Array(GRID_SIZE)
+		for (let i = 0; i < GRID_SIZE; i++) {
+		    tempGrid[i] = [[0,0],[0,0],[0,0],[0,0],[0,0]]
+		    //new Array(GRID_SIZE).fill([0,0])
+		}
+
+
+		//console.log(oldGrid, tempGrid, "set it to zeroez")
+		//console.log(new Array(GRID_SIZE).fill(Array(GRID_SIZE).fill([0,0])), "whaa", oldGrid)
+		for (const [i, v] of probs.entries()) {
+		    //console.log(probs[i])
+		    let point = math.pickRandom([...Array(Math.pow(GRID_SIZE, 2)).keys()], probs[i].map((e) => e.re))
+		    //console.log(point, "point")
+
+		    let x = Math.floor(point / GRID_SIZE)
+		    let y = point % GRID_SIZE
+
+		    qbits[i].x = x
+		    qbits[i].y = y
+		    //let extratempgrid = [...tempGrid]
+		    //extratempgrid[x][y][i] = "whee"// 1
+		    //tempGrid[x][y][i] = "whee"// 1
+		    tempGrid[x][y][i] = 1
+		    //console.log(extratempgrid, "cyclieing temp grid")
+		    //console.log("what",x,y, "tf" )
+		}
+		oldGrid = tempGrid
+		//console.log(qbits[0], qbits[1])
+		//setStateGrid(oldGrid)
+		setStateGrid(tempGrid)
+		console.log(oldGrid, "old grid final")
+		//console.log(oldGrid)
+		//console.log("why isnt props updating")
 	    }
-	    //console.log(qbits[0], qbits[1])
-	    setStateGrid(oldGrid)
-	    //console.log(oldGrid)
-	    //console.log("why isnt props updating")
-        }
     }
 
     //console.log(grid);
@@ -124,6 +161,7 @@ function App() {
         waveValue = math.add(waveValue, math.multiply(oldGrid[u][v][qbit.id], mul))
         }
     }
+	//console.log("returning a waveval", waveValue.re)
     return waveValue
     }
 
