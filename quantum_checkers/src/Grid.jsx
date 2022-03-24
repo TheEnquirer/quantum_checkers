@@ -25,7 +25,7 @@ const Grid = props => {
 		    return (v.map((u, j) => {
 			//console.log(i, j)
 			return (
-			    <div class="border border-neutral-400"
+			    <div class="border border-neutral-400 text-white flex center items-center align-center content-center justify-center flex-col"
 				style={{
 					width: "100px",
 					height: "100px",
@@ -38,7 +38,21 @@ const Grid = props => {
 				//background: u ? this.state.props[i][j]["color"] : "inherit"
 			    //}}
 			    >
-				{u[1]}
+				{u[0]?
+				    <div class="bg-blue-900 p-1 rounded-sm ">
+
+					q1
+				    </div>
+
+				: ""}
+
+				{u[1]?
+				    <div class="bg-red-900 p-1 rounded-sm w-full ml-4 mr-3">
+
+					q2
+				    </div>
+
+				: ""}
 				&nbsp;
 			    </div>
 			)
