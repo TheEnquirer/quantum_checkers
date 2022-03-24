@@ -6,16 +6,20 @@ import React, { useRef, useEffect, useState } from 'react'
 
 const math = create(all)
 
-const K = 1
+const K = 10
 const N = 10
 const GRID_SIZE = 5
 //const f = 2 // killed by annli, 2022, mar 22 7:33:52. rest in peice, dear friend of us all.
-const SIM_LEN = 2
+const SIM_LEN = 100
+const FRAME_TIME = 100
 //const QBIT_COUNT = 5
 
 let q1 = {id: 0, x: 2, y: 2}
 let q2 = {id: 1, x: 2, y: 2}
 let qbits = [q1, q2]
+
+
+const timer = ms => new Promise(res => setTimeout(res, ms))
 
 function App() {
 
@@ -25,7 +29,7 @@ function App() {
     }, [])
 
 
-    const poggers = () => {
+    const poggers = async () => {
 	console.log("running poggers")
 	// [
 	//     [[p1, p2], ..],
@@ -43,6 +47,12 @@ function App() {
 
 	let elapsed = 0
 	for (let time = 1; time < SIM_LEN; time++) {
+
+
+	    //setTimeout(function(){
+	    //}, 5000);
+	    await timer(FRAME_TIME)
+
 	    // do our non-collapse calc
 	    // if k has passed, collapse, reset k
 	    //let newGrid = new Array(GRID_SIZE).fill(new Array(GRID_SIZE).fill([0,0])) // initialize our new grid
@@ -71,6 +81,43 @@ function App() {
 	    //continue
 	    oldGrid = newGrid
 
+	    let probs = [[], []]
+	    for (let i = 0; i < GRID_SIZE; i++) {
+		for (let j = 0; j < GRID_SIZE; j++) {
+		    for (let q = 0; q < 2; q++) {
+			probs[q].push(math.multiply(oldGrid[i][j][q], math.conj(oldGrid[i][j][q])))
+		    }
+		}
+	    }
+
+	    for (const [i, v] of probs.entries()) {
+		let sum = math.sum(v)
+		probs[i] = v.map((e) => math.divide(e, sum))
+	    }
+
+	    let probGrid = [[],[],[],[],[]]
+
+	    for (let p = 0; p < probs[0].length; p++) {
+		probGrid[p % GRID_SIZE].push([probs[0][p].re, probs[1][p].re])
+	    }
+	    //console.log(probGrid, "whee")
+	    setStateGrid(probGrid)
+
+	    //let tempGrid = new Array(GRID_SIZE).fill(Array(GRID_SIZE).fill([0,0])) // initialize our grid
+
+
+	    let tempGrid = new Array(GRID_SIZE)
+	    for (let i = 0; i < GRID_SIZE; i++) {
+		tempGrid[i] = [[0,0],[0,0],[0,0],[0,0],[0,0]]
+		//new Array(GRID_SIZE).fill([0,0])
+	    }
+
+
+	    //console.log(oldGrid, tempGrid, "set it to zeroez")
+	    //console.log(new Array(GRID_SIZE).fill(Array(GRID_SIZE).fill([0,0])), "whaa", oldGrid)
+	    //console.log(probs)
+	    //console.log(oldGrid, "old grid final")
+
 	    elapsed++
 	    if (elapsed == K) {
 		// collapse
@@ -79,31 +126,6 @@ function App() {
 		// find all the probabilities
 		// choooose where the qbits go
 		// update the qbits
-		let probs = [[], []]
-		for (let i = 0; i < GRID_SIZE; i++) {
-		    for (let j = 0; j < GRID_SIZE; j++) {
-		    for (let q = 0; q < 2; q++) {
-			probs[q].push(math.multiply(oldGrid[i][j][q], math.conj(oldGrid[i][j][q])))
-		    }
-		    }
-		}
-
-		for (const [i, v] of probs.entries()) {
-		    let sum = math.sum(v)
-		    probs[i] = v.map((e) => math.divide(e, sum))
-		}
-		//let tempGrid = new Array(GRID_SIZE).fill(Array(GRID_SIZE).fill([0,0])) // initialize our grid
-
-
-		let tempGrid = new Array(GRID_SIZE)
-		for (let i = 0; i < GRID_SIZE; i++) {
-		    tempGrid[i] = [[0,0],[0,0],[0,0],[0,0],[0,0]]
-		    //new Array(GRID_SIZE).fill([0,0])
-		}
-
-
-		//console.log(oldGrid, tempGrid, "set it to zeroez")
-		//console.log(new Array(GRID_SIZE).fill(Array(GRID_SIZE).fill([0,0])), "whaa", oldGrid)
 		for (const [i, v] of probs.entries()) {
 		    //console.log(probs[i])
 		    let point = math.pickRandom([...Array(Math.pow(GRID_SIZE, 2)).keys()], probs[i].map((e) => e.re))
@@ -122,13 +144,15 @@ function App() {
 		    //console.log("what",x,y, "tf" )
 		}
 		oldGrid = tempGrid
+		setStateGrid(oldGrid)
+		//setStateGrid(oldGrid)
+		//setStateGrid(oldGrid)
 		//console.log(qbits[0], qbits[1])
 		//setStateGrid(oldGrid)
-		setStateGrid(tempGrid)
-		console.log(oldGrid, "old grid final")
 		//console.log(oldGrid)
 		//console.log("why isnt props updating")
 	    }
+	    //console.log("setting the thing!", oldGrid)
     }
 
     //console.log(grid);
