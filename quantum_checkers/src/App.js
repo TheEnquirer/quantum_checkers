@@ -14,7 +14,7 @@ const N = 10
 const GRID_SIZE = 5
 //const f = 2 // killed by annli, 2022, mar 22 7:33:52. rest in peice, dear friend of us all.
 const SIM_LEN = 20
-const FRAME_TIME = 100
+const FRAME_TIME = 80
 //const QBIT_COUNT = 5
 
 let q1 = {id: 0, x: 2, y: 2}
@@ -39,13 +39,15 @@ let hadamard = [[1/math.sqrt(2),  1/math.sqrt(2)],
 let pauli_x = [[0, 1],
  			   [1, 0]]
 
-let pauli_y = [[0, -math.i],
-               [math.i, 0]]
+let pauli_y = [[0, math.complex(0,-1)],
+               [math.complex(1, 0), 0]]
 
 let pauli_z = [[1,  0],
  			   [0, -1]]
 
 let paulis = {1: pauli_x, 2: pauli_y, 3: pauli_z}
+
+console.log(pauli_y)
 
 let choice = null
 let choice2 = null
@@ -190,11 +192,10 @@ function App() {
 
 				oldGrid = tempGrid
 				setStateGrid(oldGrid)
-
 				if ((qbits[0].x === qbits[1].x) != (qbits[0].y === qbits[1].y)) {
 					sims++
 					await timer(200)
-					let cond = (qbits[0].x > qbits[1].x || qbits[0].y < qbits[1].y)
+					let cond = (qbits[0].x < qbits[1].x || qbits[0].y > qbits[1].y)
 					let gate = cond ? cnot : cnot_rev
 					register = math.multiply(gate, register)
 					setStateName(cond ? "red" : "blue")
@@ -203,12 +204,10 @@ function App() {
 						await timer(100)
 					}
 					if (choice > 0) {
+						console.log(paulis[choice])
 						gate = cond ? math.kron(paulis[choice], math.identity(2)) : math.kron(math.identity(2), paulis[choice])
 						register = math.multiply(gate, register)
 						state = math.pickRandom([0, 1, 2, 3], math.abs(math.dotMultiply(register, math.ctranspose(register))))
-						console.log(sims)
-						console.log(register)
-						console.log(cond)
 						console.log(state)
 						if (cond) {
 							score = +(state === 0 || state === 2)
@@ -227,7 +226,7 @@ function App() {
 					let gate = Math.random() < 0.5 ? math.kron(hadamard, math.identity(2)) : math.kron(math.identity(2), hadamard)
 					register = math.multiply(gate, register)
 				}
-				await timer(250)
+				await timer(150)
 				choice = null
 				choice2 = null
 				//await timer(FRAME_TIME*5)
