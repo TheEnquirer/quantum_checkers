@@ -47,7 +47,7 @@ const Modal = props => {
                     </Dialog.Title>
                     <div className="mt-2">
                       <p className="text-sm text-gray-500">
-                        Choose a Pauli matrix to apply to the qubit and gain or lose points.
+                        Choose a Pauli matrix to apply to the {props.qname} qubit and gain or lose points.
                         <br />
                         Otherwise, skip this round.
                       </p>
