@@ -1,6 +1,7 @@
 import './App.css';
 import Grid from './Grid'
 import Modal from './Modal'
+import Modal2 from './Modal2'
 import { create, all } from 'mathjs'
 import React, { useRef, useEffect, useState } from 'react'
 import { sqrt } from 'mathjs';
@@ -46,7 +47,8 @@ let pauli_z = [[1,  0],
 
 let paulis = {1: pauli_x, 2: pauli_y, 3: pauli_z}
 
-let choice = 0
+let choice = null
+let choice2 = null
 
 const timer = ms => new Promise(res => setTimeout(res, ms))
 
@@ -54,10 +56,16 @@ function App() {
 
     const [stateGrid, setStateGrid] = useState(null)
 	const [stateStratDialog, setStateStratDialog] = useState(false)
+	const [stateScoreDialog, setStateScoreDialog] = useState(false)
+	const [statePoint, setStatePoint] = useState(null)
 	const [stateMatrix, setStateMatrix] = useState(null)
 
 	const call_back = (e) => {
 		choice = e
+	}
+
+	const call_back2 = (e) => {
+		choice2 = e
 	}
 
     useEffect(() => {poggers()}, [])
@@ -80,6 +88,8 @@ function App() {
 
 		let elapsed = 0
 		let sims = 0
+		let score
+		let state
 		while (sims < SIM_LEN) {
 
 			//setTimeout(function(){
@@ -181,6 +191,7 @@ function App() {
 				setStateGrid(oldGrid)
 
 				if ((qbits[0].x === qbits[1].x) != (qbits[0].y === qbits[1].y)) {
+					await timer(200)
 					let cond = (qbits[0].x > qbits[1].x || qbits[0].y > qbits[1].y)
 					let gate = cond ? cnot : cnot_rev
 					register = math.multiply(gate, register)
@@ -192,14 +203,28 @@ function App() {
 					if (choice > 0) {
 						gate = cond ? math.kron(paulis[choice], math.identity(2)) : math.kron(math.identity(2), paulis[choice])
 						register = math.multiply(gate, register)
+						state = math.pickRandom([0, 1, 2, 3], math.abs(math.dotMultiply(register, math.ctranspose(register))))
+						if (cond) {
+							score = +(state === 2 || state === 3)
+						} else {
+							score = +(state === 1 || state === 3)
+						}
+						register = [0, 0, 0, 0]
+						register[state] = 1
+						setStatePoint(score)
+						setStateScoreDialog(true)
+						while (choice2 === null) {
+							await timer(100)
+						}
 					}
-			
+					await timer(200)
 				} else {
 					let gate = Math.random() < 0.5 ? math.kron(hadamard, math.identity(2)) : math.kron(math.identity(2), hadamard)
 					register = math.multiply(gate, register)
 				}
 				console.log(register)
 				choice = null
+				choice2 = null
 				//await timer(FRAME_TIME*5)
 				//time += FRAME_TIME*5
 				//setStateGrid(oldGrid)
@@ -251,6 +276,7 @@ function App() {
     <div class="border-0 border-red-500 h-screen bg-zinc-900">
 	<Grid gridSize={GRID_SIZE} grid={stateGrid} />
 	<Modal open={stateStratDialog} onClose={() => setStateStratDialog(false)} callback={(e) => call_back(e)}/>
+	<Modal2 open={stateScoreDialog} pts={statePoint} onClose={() => setStateScoreDialog(false)} callback={() => call_back2(true)}/>
     </div>
     );
 }
